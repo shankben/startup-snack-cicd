@@ -1,0 +1,30 @@
+{
+  "name": "cdk-snack-cicd",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "mkdir -p dist && rsync -azr --delete secrets/ dist/secrets/ && rsync -azr --delete src/ dist/src/ && tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "clean": "rm -rf cdk.out/* && rm -rf dist/*"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "^1.68.0",
+    "@aws-cdk/aws-codedeploy": "^1.68.0",
+    "@aws-cdk/aws-codepipeline-actions": "^1.68.0",
+    "@aws-cdk/aws-ecs-patterns": "^1.68.0",
+    "@aws-cdk/cloudformation-include": "^1.68.0",
+    "@aws-cdk/core": "^1.68.0",
+    "@types/jest": "^26.0.10",
+    "@types/node": "^14.11.10",
+    "aws-cdk": "^1.68.0",
+    "jest": "^26.4.2",
+    "source-map-support": "^0.5.16",
+    "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.64"
+  }
+}
