@@ -1,5 +1,7 @@
 # CDK Snack: CICD
 
+![Architecture Diagram](/architecture.svg)
+
 ## Setup
 
   1. Install CDK globally: `npm install -g aws-cdk`
