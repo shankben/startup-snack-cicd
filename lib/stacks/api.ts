@@ -24,7 +24,7 @@ export default class RestApiStack extends Stack {
   public readonly api;
   public readonly authorizer;
 
-  private readonly assetPath = path.join(__dirname, "..", "..", "..", "src",
+  private readonly assetPath = path.join(__dirname, "..", "..", "src",
     "lambda");
 
   private integrationLambda(name: string, ...assetPath: string[]) {
