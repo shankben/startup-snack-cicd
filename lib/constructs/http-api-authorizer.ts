@@ -30,6 +30,7 @@ export default class HttpApiAuthorizer extends Construct {
       apiId: httpApi.httpApiId,
       authorizerPayloadFormatVersion: "2.0",
       authorizerType: "REQUEST",
+      authorizerResultTtlInSeconds: 3600,
       enableSimpleResponses: true,
       identitySource: ["$request.header.Authorization"],
       name: `Authorizer-${stage.stageName}`,
