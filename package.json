@@ -8,9 +8,16 @@
     "test": "jest",
     "clean": "rm -rf cdk.out/* && rm -rf dist/*"
   },
+  "config": {
+    "gitHubBranch": "production",
+    "gitHubOwner": "shankben",
+    "gitHubRepository": "cdk-snack-cicd",
+    "gitHubTokenSecretId": "/CDKSnackCICD/GitHubAccessToken"
+  },
   "dependencies": {
     "@aws-cdk/assert": "^1.77.0",
     "@aws-cdk/aws-apigateway": "^1.77.0",
+    "@aws-cdk/aws-apigatewayv2-integrations": "^1.77.0",
     "@aws-cdk/aws-codedeploy": "^1.77.0",
     "@aws-cdk/aws-codepipeline-actions": "^1.77.0",
     "@aws-cdk/aws-ecs-patterns": "^1.77.0",
@@ -31,8 +38,5 @@
     "ts-jest": "^26.4.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.0.3"
-  },
-  "devDependencies": {
-    "@aws-cdk/aws-apigatewayv2-integrations": "^1.77.0"
   }
 }
