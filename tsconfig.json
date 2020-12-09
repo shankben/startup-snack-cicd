@@ -33,7 +33,6 @@
     "secrets/*"
   ],
   "exclude": [
-    "cdk.out",
-    "src/fargate/**"
+    "cdk.out"
   ]
 }
