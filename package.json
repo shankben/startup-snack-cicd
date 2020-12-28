@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "./scripts/build.sh",
-    "watch": "npx tsc -w",
+    "watch": "tsc -w",
     "clean": "rm -rf cdk.out/* && rm -rf dist/*"
   },
   "config": {
@@ -14,25 +14,25 @@
     "gitHubTokenSecretId": "/CDKSnackCICD/GitHubAccessToken"
   },
   "dependencies": {
-    "@aws-cdk/assert": "^1.77.0",
-    "@aws-cdk/aws-apigateway": "^1.77.0",
-    "@aws-cdk/aws-apigatewayv2-integrations": "^1.77.0",
-    "@aws-cdk/aws-codedeploy": "^1.77.0",
-    "@aws-cdk/aws-codepipeline-actions": "^1.77.0",
-    "@aws-cdk/aws-ecs-patterns": "^1.77.0",
-    "@aws-cdk/cloudformation-include": "^1.77.0",
-    "@aws-cdk/core": "^1.77.0",
-    "@aws-cdk/pipelines": "^1.77.0",
-    "@types/aws-lambda": "^8.10.65",
-    "@types/node": "^14.14.11",
+    "@aws-cdk/assert": "^1.80.0",
+    "@aws-cdk/aws-apigateway": "^1.80.0",
+    "@aws-cdk/aws-apigatewayv2-integrations": "^1.80.0",
+    "@aws-cdk/aws-codedeploy": "^1.80.0",
+    "@aws-cdk/aws-codepipeline-actions": "^1.80.0",
+    "@aws-cdk/aws-ecs-patterns": "^1.80.0",
+    "@aws-cdk/cloudformation-include": "^1.80.0",
+    "@aws-cdk/core": "^1.80.0",
+    "@aws-cdk/pipelines": "^1.80.0",
+    "@types/aws-lambda": "^8.10.68",
+    "@types/node": "^14.14.16",
     "@types/source-map-support": "^0.5.3",
-    "@typescript-eslint/eslint-plugin": "^4.9.1",
-    "@typescript-eslint/parser": "^4.9.1",
-    "aws-cdk": "^1.77.0",
-    "aws-sdk": "^2.806.0",
-    "eslint": "^7.15.0",
+    "@typescript-eslint/eslint-plugin": "^4.11.0",
+    "@typescript-eslint/parser": "^4.11.0",
+    "aws-cdk": "^1.80.0",
+    "aws-sdk": "^2.817.0",
+    "eslint": "^7.16.0",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1",
-    "typescript": "^4.0.3"
+    "typescript": "^4.1.3"
   }
 }

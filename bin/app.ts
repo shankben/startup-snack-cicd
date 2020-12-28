@@ -16,8 +16,6 @@ const {
 
 async function main() {
   await ensureSecrets();
-  const app = new App();
-
   const props = {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -27,6 +25,8 @@ async function main() {
         "us-east-1"
     }
   };
+
+  const app = new App();
 
   new PipelineStack(app, `CDKSnackCICD-${gitHubBranch}`, {
     ...props,
