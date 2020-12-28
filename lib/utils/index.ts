@@ -17,18 +17,19 @@ const ensureSecrets = async () => Promise.all(fs
   .readdirSync(SECRETS_PATH)
   .filter((it) => /^[A-Za-z]/.test(it))
   .map(async (name) => {
+    console.log(`Checking ${name}`);
     const parameterName = `/CDKSnackCICD/${name}`;
     const res = await sm.listSecrets().promise();
     return (res.SecretList ?? []).find((it) => it.Name === parameterName) ?
-      Promise.resolve(`Up to date: ${parameterName}`) :
+      console.log(`Up to date: ${name} -> ${parameterName}`) :
       (async () => {
-        console.log(`Storing ${parameterName}`);
+        console.log(`Storing: ${name} -> ${parameterName}`);
         const value = fs.readFileSync(path.join(SECRETS_PATH, name)).toString();
         return sm.createSecret({
           Name: parameterName,
           SecretString: value
         }).promise();
-      });
+      })();
   }));
 
 export {
