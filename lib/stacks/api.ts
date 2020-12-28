@@ -91,7 +91,6 @@ export default class RestApiStack extends Stack {
       })
     });
 
-    // Comment
     this.addAuthorizedRoute({
       path: "/widgets",
       methods: [HttpMethod.GET],
