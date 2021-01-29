@@ -28,13 +28,22 @@ async function main() {
 
   const app = new App();
 
-  new PipelineStack(app, `CDKSnackCICD-${gitHubBranch}`, {
+  const stack = new PipelineStack(app, `CDKSnackCICD-${gitHubBranch}`, {
     ...props,
     gitHubBranch,
     gitHubOwner,
     gitHubRepository,
     gitHubTokenSecretId
   });
+
+  stack.templateOptions.description = [
+    "This CDK Snack uses CDK Pipelines to set up an AWS CodePipeline which", "builds and deploys this CDK Snack within AWS on your behalf"
+  ].join(" ");
+
+  stack.templateOptions.metadata = {
+    cdkSnackProjectId: "54acfcb6-bd63-4384-a59d-410c828ea79b",
+    cdkSnackId: "df4c903a-faed-4a51-89d0-6eb541d75314"
+  };
 }
 
 main().catch((err) => {
