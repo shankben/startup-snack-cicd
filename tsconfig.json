@@ -28,7 +28,7 @@
   },
   "include": [
     "bin/**/*.ts",
-    "src/**/*.ts",
+    "assets/**/*.ts",
     "lib/**/*.ts",
     "secrets/*"
   ],

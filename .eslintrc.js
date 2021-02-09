@@ -17,7 +17,7 @@ module.exports = {
   "plugins": [
     "@typescript-eslint"
   ],
-  "ignorePatterns": ["./src/lambda/**"],
+  "ignorePatterns": ["./assets/lambda/**"],
   "rules": {
     "@typescript-eslint/semi": ["error", "always"],
     "@typescript-eslint/no-non-null-assertion": "off",
