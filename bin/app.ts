@@ -38,7 +38,7 @@ async function main() {
   });
 
   stack.templateOptions.description = [
-    "This CDK Snack uses CDK Pipelines to set up an AWS CodePipeline which", "builds and deploys this CDK Snack within AWS on your behalf"
+    "This Startup Snack uses CDK Pipelines to set up an AWS CodePipeline which", "builds and deploys this Startup Snack within AWS on your behalf"
   ].join(" ");
 
   stack.templateOptions.metadata = {
