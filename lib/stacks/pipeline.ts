@@ -1,176 +1,112 @@
-import {
-  PipelineProject,
-  BuildSpec,
-  LinuxBuildImage
-} from "@aws-cdk/aws-codebuild";
+import { Construct, Stack, StackProps, SecretValue } from "@aws-cdk/core";
+import { Artifact } from "@aws-cdk/aws-codepipeline";
+import { PolicyStatement } from "@aws-cdk/aws-iam";
 
 import {
-  AwsCustomResource,
-  AwsCustomResourcePolicy,
-  PhysicalResourceId
-} from "@aws-cdk/custom-resources";
-
-import { Repository } from "@aws-cdk/aws-codecommit";
-
-import {
-  Artifact,
-  Pipeline
-} from "@aws-cdk/aws-codepipeline";
+  CdkPipeline,
+  SimpleSynthAction,
+  ShellScriptAction
+} from "@aws-cdk/pipelines";
 
 import {
   GitHubSourceAction,
-  CodeBuildAction,
-  CloudFormationCreateUpdateStackAction
+  ManualApprovalAction
 } from "@aws-cdk/aws-codepipeline-actions";
 
-import {
-  Code
-} from "@aws-cdk/aws-lambda";
 
-import {
-  App,
-  Stack,
-  StackProps,
-  SecretValue
-} from "@aws-cdk/core";
+import DevelopmentStage from "../stages/development";
+import ProductionStage from "../stages/production";
 
 export interface PipelineStackProps extends StackProps {
-  lambdaCode: Code;
-  repoName: string
+  developmentStageAccountId: string;
+  developmentStageRegion: string;
+  productionStageAccountId: string;
+  productionStageRegion: string;
+  gitHubBranch: string;
+  gitHubOwner: string;
+  gitHubRepository: string;
+  gitHubTokenSecretId: string;
 }
 
-export class PipelineStack extends Stack {
-  constructor(app: App, id: string, props: PipelineStackProps) {
-    super(app, id, props);
+export default class PipelineStack extends Stack {
+  constructor(scope: Construct, id: string, props: PipelineStackProps) {
+    super(scope, id, props);
 
-    const code = Repository.fromRepositoryName(this, "ImportedRepo",
-      props.repoName);
+    const sourceArtifact = new Artifact();
+    const buildArtifact = new Artifact();
 
-    const cdkBuild = new PipelineProject(this, "CdkBuild", {
-      buildSpec: BuildSpec.fromObject({
-        version: "0.2",
-        phases: {
-          install: {
-            commands: "npm install"
-          },
-          build: {
-            commands: [
-              "npm run build",
-              "npm run cdk synth -- -o dist"
-            ]
-          }
-        },
-        artifacts: {
-          "base-directory": "dist",
-          files: [
-            "LambdaStack.template.json"
-          ]
-        }
+    const cdkPipeline = new CdkPipeline(this, "Pipeline", {
+      cloudAssemblyArtifact: buildArtifact,
+      crossAccountKeys: true,
+      pipelineName: "StartupSnack-CICD-Pipeline",
+      selfMutating: true,
+      sourceAction: new GitHubSourceAction({
+        actionName: "GitHub",
+        output: sourceArtifact,
+        owner: props.gitHubOwner,
+        repo: props.gitHubRepository,
+        branch: props.gitHubBranch,
+        oauthToken: SecretValue.secretsManager(props.gitHubTokenSecretId)
       }),
-      environment: {
-        buildImage: LinuxBuildImage.STANDARD_2_0
-      }
-    });
-
-    const lambdaBuild = new PipelineProject(this, "LambdaBuild", {
-      buildSpec: BuildSpec.fromObject({
-        version: "0.2",
-        phases: {
-          install: {
-            commands: [
-              "cd lambda",
-              "npm install"
-            ]
-          },
-          build: {
-            commands: "npm run build"
-          },
-        },
-        artifacts: {
-          "base-directory": "lambda",
-          files: [
-            "index.js",
-            "node_modules/**/*"
-          ]
-        }
-      }),
-      environment: {
-        buildImage: LinuxBuildImage.STANDARD_2_0
-      },
-    });
-
-    const sourceOutput = new Artifact();
-
-    const cdkBuildOutput = new Artifact("CdkBuildOutput");
-
-    const lambdaBuildOutput = new Artifact("LambdaBuildOutput");
-
-    const getParameter = new AwsCustomResource(this, "GetParameter", {
-      onUpdate: {
-        service: "SSM",
-        action: "getParameter",
-        physicalResourceId: PhysicalResourceId.of(Date.now().toString()),
-        parameters: {
-          Name: "/CDKSnackCICD/GitHubAccessToken",
-          WithDecryption: true
-        }
-      },
-      policy: AwsCustomResourcePolicy.fromSdkCalls({
-        resources: AwsCustomResourcePolicy.ANY_RESOURCE
+      synthAction: SimpleSynthAction.standardNpmSynth({
+        sourceArtifact,
+        cloudAssemblyArtifact: buildArtifact,
+        actionName: "Build",
+        installCommand: "npm install",
+        buildCommand: "npm run build"
       })
     });
 
-    // Use the value in another construct with
-    getParameter.getResponseField("Parameter.Value")
-
-
-    new Pipeline(this, "Pipeline", {
-      stages: [
-        {
-          stageName: "Source",
-          actions: [
-            new GitHubSourceAction({
-              actionName: "GitHub_Source",
-              oauthToken: SecretValue
-                .ssmSecure("/CDKSnackCICD/GitHubAccessToken")
-              repository: code,
-              output: sourceOutput
-            })
-          ]
-        },
-        {
-          stageName: "Build",
-          actions: [
-            new CodeBuildAction({
-              actionName: "Lambda_Build",
-              project: lambdaBuild,
-              input: sourceOutput,
-              outputs: [lambdaBuildOutput]
-            }),
-            new CodeBuildAction({
-              actionName: "CDK_Build",
-              project: cdkBuild,
-              input: sourceOutput,
-              outputs: [cdkBuildOutput]
-            })
-          ]
-        },
-        {
-          stageName: "Deploy",
-          actions: [
-            new CloudFormationCreateUpdateStackAction({
-              actionName: "Lambda_CFN_Deploy",
-              templatePath: cdkBuildOutput.atPath("LambdaStack.template.json"),
-              stackName: "LambdaDeploymentStack",
-              adminPermissions: true,
-              parameterOverrides: {
-                ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
-              },
-              extraInputs: [lambdaBuildOutput]
-            })
-          ]
-        }
-      ]
+    //// Development Stage
+    const development = new DevelopmentStage(this, "Development", {
+      managementAccount: Stack.of(this).account,
+      env: {
+        account: props.developmentStageAccountId,
+        region: props.developmentStageRegion
+      }
     });
+    cdkPipeline.addApplicationStage(development);
+
+    const { roleArn: readerRoleArn } = development.crossAccountReaderStack
+      .crossAccountRole;
+
+    const testDevelopmentStage = cdkPipeline
+      .addStage(`Test-${development.stageName}`);
+
+    testDevelopmentStage.addActions(
+      new ShellScriptAction({
+        actionName: "RunTests",
+        runOrder: testDevelopmentStage.nextSequentialRunOrder(),
+        additionalArtifacts: [sourceArtifact],
+        rolePolicyStatements: [
+          new PolicyStatement({
+            actions: ["sts:AssumeRole"],
+            resources: [readerRoleArn]
+          })
+        ],
+        environmentVariables: {
+          STACK_OUTPUT_KEY: { value: development.apiStack.apiOutputKey },
+          STACK_NAME: { value: development.apiStack.stackName },
+          CROSS_ACCOUNT_READER_ROLE_ARN: { value: readerRoleArn }
+        },
+        commands: [
+          "npm install",
+          "npm run test"
+        ]
+      }),
+      new ManualApprovalAction({
+        actionName: "ApproveDevelopment",
+        runOrder: testDevelopmentStage.nextSequentialRunOrder()
+      })
+    );
+
+
+    //// Production Stage
+    cdkPipeline.addApplicationStage(new ProductionStage(this, "Production", {
+      env: {
+        account: props.productionStageAccountId,
+        region: props.productionStageRegion
+      }
+    }));
   }
 }

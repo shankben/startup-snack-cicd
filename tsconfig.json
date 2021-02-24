@@ -28,12 +28,11 @@
   },
   "include": [
     "bin/**/*.ts",
-    "src/**/*.ts",
+    "assets/**/*.ts",
     "lib/**/*.ts",
     "secrets/*"
   ],
   "exclude": [
-    "cdk.out",
-    "src/fargate/**"
+    "cdk.out"
   ]
 }

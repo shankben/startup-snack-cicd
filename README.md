@@ -1,4 +1,6 @@
-# CDK Snack: CICD
+# Startup Snack: CICD
+
+![Architecture Diagram](/architecture.svg)
 
 ## Setup
 

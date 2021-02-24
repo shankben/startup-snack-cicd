@@ -1,52 +1,56 @@
-#!/usr/bin/env node
 import "source-map-support/register";
 import fs from "fs";
 import path from "path";
-
-import AWS from "aws-sdk";
-import SSM from "aws-sdk/clients/ssm";
-const REGION = process.env.AWS_REGION ??
-  process.env.CDK_DEPLOY_REGION ??
-  process.env.CDK_DEFAULT_REGION ??
-  "us-east-1";
-
-const SECRETS_PATH = path.join(__dirname, "..", "secrets");
-AWS.config.update({ region: REGION });
-const ssm = new SSM();
-
 import { App } from "@aws-cdk/core";
-import { LambdaStack } from "../lib/stacks/lambda";
-import { PipelineStack } from "../lib/stacks/pipeline";
+import PipelineStack from "../lib/stacks/pipeline";
 
-const ensureParameters = async () => Promise.all(fs
-  .readdirSync(SECRETS_PATH)
-  .filter((it) => /^[A-Za-z]/.test(it))
-  .map(async (name) => {
-    console.log(`Storing ${name}`);
-    const parameterName = `/CDKSnackCICD/${name}`;
-    const res = await ssm.describeParameters().promise();
-    return res.Parameters!
-      .filter((it) => it.Name === parameterName).length !== 0 ?
-        Promise.resolve() :
-        ssm.putParameter({
-          Name: parameterName,
-          Value: fs.readFileSync(path.join(SECRETS_PATH, name)).toString(),
-          Type: "SecureString",
-          Overwrite: true
-        }).promise();
-  }));
+const pjp = path.join(__dirname, "..", "..", "package.json");
+const packageJson = JSON.parse(fs.readFileSync(pjp).toString());
+const {
+  developmentStageAccountId,
+  developmentStageRegion,
+  productionStageAccountId,
+  productionStageRegion,
+  gitHubBranch,
+  gitHubOwner,
+  gitHubRepository,
+  gitHubTokenSecretId
+} = packageJson.config;
 
 async function main() {
-  await ensureParameters();
+  const props = {
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.AWS_REGION ??
+        process.env.CDK_DEPLOY_REGION ??
+        process.env.CDK_DEFAULT_REGION ??
+        "us-east-1"
+    }
+  };
 
   const app = new App();
 
-  const lambdaStack = new LambdaStack(app, "LambdaStack");
+  const stack = new PipelineStack(app, "StartupSnack-CICD", {
+    ...props,
+    developmentStageAccountId,
+    developmentStageRegion,
+    productionStageAccountId,
+    productionStageRegion,
+    gitHubBranch,
+    gitHubOwner,
+    gitHubRepository,
+    gitHubTokenSecretId
+  });
 
-  // new PipelineStack(app, "PipelineStack", {
-  //   lambdaCode: lambdaStack.lambdaCode,
-  //   repoName: CODECOMMIT_REPO_NAME
-  // });
+  stack.templateOptions.description = [
+    "This Startup Snack uses CDK Pipelines to set up an AWS CodePipeline which",
+    "builds and deploys this Startup Snack within AWS on your behalf"
+  ].join(" ");
+
+  stack.templateOptions.metadata = {
+    StartupSnackProjectId: "54acfcb6-bd63-4384-a59d-410c828ea79b",
+    StartupSnackId: "df4c903a-faed-4a51-89d0-6eb541d75314"
+  };
 }
 
 main().catch((err) => {
