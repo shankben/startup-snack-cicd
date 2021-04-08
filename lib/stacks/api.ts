@@ -17,6 +17,7 @@ import {
   CfnRoute,
   HttpApi,
   HttpMethod,
+  CorsHttpMethod,
   HttpStage
 } from "@aws-cdk/aws-apigatewayv2";
 
@@ -81,10 +82,10 @@ export default class RestApiStack extends Stack {
         allowOrigins: ["*"],
         allowHeaders: ["Authorization"],
         allowMethods: [
-          HttpMethod.GET,
-          HttpMethod.HEAD,
-          HttpMethod.OPTIONS,
-          HttpMethod.POST
+          CorsHttpMethod.GET,
+          CorsHttpMethod.HEAD,
+          CorsHttpMethod.OPTIONS,
+          CorsHttpMethod.POST
         ]
       }
     });

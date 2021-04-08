@@ -26,7 +26,7 @@ export default class DevelopmentStage extends Stage {
     this.crossAccountReaderStack = new CrossAccountReader(
       this,
       "CrossAccountReaderStack",
-      { managementAccount: props.managementAccount}
+      { managementAccount: props.managementAccount }
     );
 
     const dataStack = new DataStack(this, "DataStack");
